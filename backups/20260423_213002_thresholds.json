@@ -1,0 +1,16 @@
+{
+  "global": {
+    "version": "0.2",
+    "last_updated": "2026-04-23"
+  },
+  "thresholds": {
+    "cognitive": 0.16,
+    "trust": 0.045,
+    "interest": 0.008,
+    "swarm": 0.096
+  },
+  "meta": {
+    "description": "Domain-specific VMN thresholds for safety determination.",
+    "note": "Values are static and should be updated based on calibration loops."
+  }
+}
