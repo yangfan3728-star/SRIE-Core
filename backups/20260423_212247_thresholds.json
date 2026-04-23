@@ -4,8 +4,8 @@
     "last_updated": "2026-04-23"
   },
   "thresholds": {
-    "cognitive": 0.16,
-    "trust": 0.045,
+    "cognitive": 0.160,
+    "trust": 0.040,
     "interest": 0.008,
     "swarm": 0.096
   },
