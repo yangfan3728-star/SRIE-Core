@@ -1,22 +1,25 @@
 """
-SRIE Planner v0.1
-Action Planning Module
+SRIE Planner v0.2
+Action Planning Module with Approval Notifications
 
-Reads Introspection Reports and generates executable action plans.
+Reads Introspection Reports, generates plans, and triggers notifications
+for actions requiring human review.
 """
 
 import os
 import sys
 import json
+import subprocess
 from datetime import datetime
 
 # 配置项
 CONFIDENCE_THRESHOLD = 0.6
 
 class Planner:
-    def __init__(self, report_path=None):
+    def __init__(self, report_path=None, notify_target=None):
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.report = self._load_report(report_path)
+        self.notify_target = notify_target or "ou_30bf15e3973282354fe607cbd39ea6df"
         self.plan = {
             "plan_id": datetime.now().strftime("PLAN-%Y%m%d-%H%M%S"),
             "generated_at": datetime.now().isoformat(),
@@ -25,7 +28,6 @@ class Planner:
         
     def _load_report(self, path):
         if not path:
-            # Auto-detect latest log in ./logs/
             logs_dir = os.path.join(self.base_dir, "logs")
             if not os.path.exists(logs_dir):
                 raise FileNotFoundError("Logs directory not found. Run introspector.py first.")
@@ -39,6 +41,27 @@ class Planner:
         with open(path, 'r') as f:
             return json.load(f)
             
+    def _notify_human_review(self, action):
+        """Send notification to Feishu/WeChat via OpenClaw CLI"""
+        msg = (
+            f"🚨 [SRIE Review Required]\n"
+            f"Action: {action['type']}\n"
+            f"File: {action['file']}\n"
+            f"Key: {action['key']} -> {action['new_value']}\n"
+            f"Reason: {action['meta']['reason']}\n"
+            f"Confidence: {action['meta']['confidence']:.2f}"
+        )
+        try:
+            # Use OpenClaw CLI to send message
+            subprocess.run([
+                "openclaw", "message", "send", 
+                "--target", self.notify_target,
+                "--message", msg
+            ], check=False, timeout=10)
+            print(f"📤 Notification sent for action: {action['key']}")
+        except Exception as e:
+            print(f"⚠️ Notification failed: {e}")
+            
     def generate_plan(self):
         candidates = self.report.get("refactoring_candidates", [])
         
@@ -51,15 +74,15 @@ class Planner:
             
             if confidence < CONFIDENCE_THRESHOLD:
                 status = "REVIEW_REQUIRED"
-                reason = f"Low confidence ({confidence:.2f} < {CONFIDENCE_THRESHOLD})"
             else:
                 status = "READY_TO_EXECUTE"
-                reason = "Auto-approved by confidence check"
                 
-            # Construct Action
             target_file = candidate.get("target")
-            # Config changes are generally safe, but critical for performance
             priority = "HIGH" if "threshold" in target_file or "config" in target_file else "MEDIUM"
+            
+            # Check for Core Logic modification (simulated rule)
+            if "srie_core.py" in target_file or "adapters/" in target_file:
+                status = "REVIEW_REQUIRED"
                 
             action = {
                 "type": "UPDATE_CONFIG",
@@ -74,6 +97,10 @@ class Planner:
                     "confidence": confidence
                 }
             }
+            
+            if status == "REVIEW_REQUIRED":
+                self._notify_human_review(action)
+                
             self.plan["actions"].append(action)
             
         return self.plan
@@ -89,7 +116,7 @@ class Planner:
         print(f"📝 Plan saved to: {plan_path}")
 
 if __name__ == "__main__":
-    print("🧠 SRIE Planner v0.1 Starting...")
+    print("🧠 SRIE Planner v0.2 Starting...")
     try:
         planner = Planner()
         plan = planner.generate_plan()
