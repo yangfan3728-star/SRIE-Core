@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-04-23T21:12:27.836993",
+  "system_health": {
+    "status": "HEALTHY",
+    "cpu_percent": 0.1,
+    "memory_usage_mb": 15.47,
+    "python_version": "3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]"
+  },
+  "module_assessments": [
+    {
+      "module": "finance_adapter",
+      "status": "HEALTHY",
+      "metrics": {
+        "accuracy": 0.75,
+        "f1_score": 0.8
+      },
+      "issue": "Static threshold does not adapt to market regimes (e.g., bull vs bear). Current value (0.040) yields high false positives (37.5% accuracy in previous full run)."
+    }
+  ],
+  "refactoring_candidates": [
+    {
+      "target": "config/thresholds.json",
+      "key": "thresholds.trust",
+      "action": "UPDATE_VALUE",
+      "suggested_value": 0.045,
+      "reason": "+10-15% Precision with stable Recall",
+      "confidence": 0.82
+    }
+  ],
+  "summary": {
+    "status": "HEALTHY",
+    "issues": [],
+    "recommendation": "Refactor Agent should execute suggested threshold update after testing."
+  }
+}
