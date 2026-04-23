@@ -1,0 +1,19 @@
+{
+  "plan_id": "PLAN-20260423-211729",
+  "generated_at": "2026-04-23T21:17:29.387799",
+  "actions": [
+    {
+      "type": "UPDATE_CONFIG",
+      "file": "config/thresholds.json",
+      "key": "thresholds.trust",
+      "new_value": 0.045,
+      "priority": "HIGH",
+      "test_command": "python3 test_srie_core.py",
+      "status": "READY_TO_EXECUTE",
+      "meta": {
+        "reason": "+10-15% Precision with stable Recall",
+        "confidence": 0.82
+      }
+    }
+  ]
+}
